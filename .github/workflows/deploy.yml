@@ -1,0 +1,28 @@
+name: deploy
+
+on:
+  push:
+    branches:
+      - master
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2-beta
+      - uses: actions/setup-node@v1
+        with:
+            node-version: '12.x'
+      - name: build
+        run: |
+          yarn install
+          yarn build
+      - name: setup aliyun oss env
+        uses: lightenai/actions-aliyun@master
+        with:
+            command: setup-oss
+            region: oss-cn-shanghai
+            accessKeyId: ${{ secrets.accessKeyId }}
+            accessKeySecret: ${{ secrets.accessKeySecret }}
+      - name: Upload build dir to OSS
+        run: ossutil cp ./public/ oss://zeroslope-web/ -r -f
